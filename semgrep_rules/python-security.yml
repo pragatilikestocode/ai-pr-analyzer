@@ -1,0 +1,112 @@
+rules:
+  - id: python.lang.security.audit.eval-or-exec-detected
+    languages:
+      - python
+    severity: ERROR
+    message: Use of eval()/exec() can execute untrusted code
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+    metadata:
+      category: security
+      cwe:
+        - "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+      owasp:
+        - A03:2021 - Injection
+
+  - id: python.lang.security.audit.os-system-detected
+    languages:
+      - python
+    severity: ERROR
+    message: Use of os.system() can execute shell commands
+    pattern: os.system(...)
+    metadata:
+      category: security
+      cwe:
+        - "CWE-78: Improper Neutralization of Special Elements used in an OS Command"
+      owasp:
+        - A03:2021 - Injection
+
+  - id: python.lang.security.audit.subprocess-detected
+    languages:
+      - python
+    severity: WARNING
+    message: Subprocess call can execute external commands
+    pattern-either:
+      - pattern: subprocess.run(...)
+      - pattern: subprocess.call(...)
+      - pattern: subprocess.check_call(...)
+      - pattern: subprocess.check_output(...)
+      - pattern: subprocess.Popen(...)
+    metadata:
+      category: security
+      cwe:
+        - "CWE-78: Improper Neutralization of Special Elements used in an OS Command"
+
+  - id: python.lang.security.audit.hardcoded-secret
+    languages:
+      - python
+    severity: ERROR
+    message: Possible hardcoded secret
+    patterns:
+      - pattern-either:
+          - pattern: $SECRET = "$VALUE"
+          - pattern: $SECRET = '$VALUE'
+          - pattern: $OBJ.$SECRET = "$VALUE"
+          - pattern: $OBJ.$SECRET = '$VALUE'
+      - metavariable-regex:
+          metavariable: $SECRET
+          regex: (?i).*(api[_-]?key|auth[_-]?token|access[_-]?token|secret|password|passwd|private[_-]?key).*
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: .{8,}
+    metadata:
+      category: security
+      cwe:
+        - "CWE-798: Use of Hard-coded Credentials"
+
+  - id: python.lang.security.audit.sql-fstring
+    languages:
+      - python
+    severity: ERROR
+    message: SQL query built with an f-string may allow injection
+    pattern-either:
+      - pattern: $CURSOR.execute(f"...")
+      - pattern: $CURSOR.executemany(f"...")
+      - pattern: $DB.raw(f"...")
+      - pattern: $DB.query(f"...")
+    metadata:
+      category: security
+      cwe:
+        - "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+      owasp:
+        - A03:2021 - Injection
+
+  - id: python.lang.maintainability.audit.debug-print
+    languages:
+      - python
+    severity: INFO
+    message: Debug print left in code
+    pattern: print(...)
+    metadata:
+      category: maintainability
+
+  - id: python.lang.security.audit.random-for-security
+    languages:
+      - python
+    severity: WARNING
+    message: Use secrets instead of random for security-sensitive values
+    pattern-either:
+      - pattern: random.random(...)
+      - pattern: random.randint(...)
+      - pattern: random.randrange(...)
+      - pattern: random.choice(...)
+      - pattern: random.choices(...)
+      - pattern: random.shuffle(...)
+      - pattern: random.sample(...)
+      - pattern: random.uniform(...)
+      - pattern: random.randbytes(...)
+    metadata:
+      category: security
+      cwe:
+        - "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator"
